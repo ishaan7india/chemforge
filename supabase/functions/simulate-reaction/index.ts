@@ -32,8 +32,7 @@ Deno.serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    const { data: body } = await req.json();
-    const { reactantA, reactantB, quantityA, unitA, quantityB, unitB }: SimulationRequest = body;
+    const { reactantA, reactantB, quantityA, unitA, quantityB, unitB }: SimulationRequest = await req.json();
 
     console.log('Simulating reaction:', { reactantA, reactantB });
 
