@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Beaker, Home, LogOut, Play, Save } from "lucide-react";
+import { Beaker, Home, LogOut, Play, Save, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
+import { ParticleBackground } from "@/components/ParticleBackground";
 
 interface Reaction {
   id: string;
@@ -174,8 +175,9 @@ const Simulator = () => {
   const productAFormed = currentProgress;
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b border-border/50 backdrop-blur-sm bg-card/30">
+    <div className="min-h-screen bg-background relative">
+      <ParticleBackground />
+      <nav className="border-b border-border/50 backdrop-blur-md bg-card/40 relative z-10 shadow-lg shadow-primary/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
@@ -198,10 +200,10 @@ const Simulator = () => {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-8">
           <div className="space-y-6">
-            <Card className="backdrop-blur-sm bg-card/50 border-border/50">
+            <Card className="backdrop-blur-md bg-card/60 border-border/50 hover:border-primary/30 transition-all duration-300 shadow-xl group animate-slide-up">
               <CardHeader>
                 <CardTitle>Reaction Setup</CardTitle>
                 <CardDescription>Select reactants and enter quantities</CardDescription>
@@ -291,15 +293,31 @@ const Simulator = () => {
                   </div>
                 </div>
 
-                <Button onClick={handleSimulate} className="w-full" disabled={isSimulating}>
-                  <Play className="w-4 h-4 mr-2" />
-                  {isSimulating ? "Simulating..." : "Simulate Reaction"}
+                <Button 
+                  onClick={handleSimulate} 
+                  className="w-full relative overflow-hidden group hover:scale-105 transition-transform shadow-lg shadow-primary/20" 
+                  disabled={isSimulating}
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
+                  <span className="relative flex items-center justify-center">
+                    {isSimulating ? (
+                      <>
+                        <Zap className="w-4 h-4 mr-2 animate-bounce-subtle" />
+                        Simulating...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Simulate Reaction
+                      </>
+                    )}
+                  </span>
                 </Button>
               </CardContent>
             </Card>
 
             {result && (
-              <Card className="backdrop-blur-sm bg-card/50 border-border/50">
+              <Card className="backdrop-blur-md bg-card/60 border-border/50 hover:border-accent/30 transition-all duration-300 shadow-xl animate-fade-in-scale">
                 <CardHeader>
                   <CardTitle>Simulation Results</CardTitle>
                   <CardDescription>Detailed stoichiometric analysis</CardDescription>
@@ -364,7 +382,7 @@ const Simulator = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="backdrop-blur-sm bg-card/50 border-border/50">
+            <Card className="backdrop-blur-md bg-card/60 border-border/50 hover:border-accent/30 transition-all duration-300 shadow-xl animate-slide-up" style={{ animationDelay: "0.1s" }}>
               <CardHeader>
                 <CardTitle>Visual Simulation</CardTitle>
                 <CardDescription>Watch the reaction progress</CardDescription>
@@ -390,11 +408,13 @@ const Simulator = () => {
                       <span className="font-medium">{reactantA || "Reactant A"}</span>
                       <span className="text-muted-foreground">{reactantARemaining}%</span>
                     </div>
-                    <div className="h-8 bg-secondary rounded-lg overflow-hidden">
+                    <div className="h-8 bg-secondary rounded-lg overflow-hidden relative">
                       <div
-                        className="h-full bg-primary transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out relative"
                         style={{ width: `${reactantARemaining}%` }}
-                      />
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                      </div>
                     </div>
                   </div>
 
@@ -403,40 +423,84 @@ const Simulator = () => {
                       <span className="font-medium">{reactantB || "Reactant B"}</span>
                       <span className="text-muted-foreground">{reactantBRemaining}%</span>
                     </div>
-                    <div className="h-8 bg-secondary rounded-lg overflow-hidden">
+                    <div className="h-8 bg-secondary rounded-lg overflow-hidden relative">
                       <div
-                        className="h-full bg-primary transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out relative"
                         style={{ width: `${reactantBRemaining}%` }}
-                      />
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="my-4 text-center text-2xl text-accent animate-pulse">→</div>
+                  <div className="my-4 text-center text-4xl text-accent animate-bounce-subtle flex items-center justify-center gap-2">
+                    <Zap className="w-6 h-6 animate-pulse" />
+                    →
+                    <Zap className="w-6 h-6 animate-pulse" style={{ animationDelay: "0.2s" }} />
+                  </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">Products</span>
                       <span className="text-accent">{productAFormed}%</span>
                     </div>
-                    <div className="h-8 bg-secondary rounded-lg overflow-hidden">
+                    <div className="h-8 bg-secondary rounded-lg overflow-hidden relative">
                       <div
-                        className="h-full bg-accent transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-accent to-accent/80 transition-all duration-500 ease-out relative"
                         style={{ width: `${productAFormed}%` }}
-                      />
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style={{ animationDelay: "0.5s" }} />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 p-6 rounded-lg border-2 border-primary/30 bg-gradient-to-b from-transparent to-primary/10">
-                  <div className="relative h-48 flex items-end justify-center">
+                <div className="mt-8 p-6 rounded-lg border-2 border-primary/30 bg-gradient-to-b from-transparent to-primary/10 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 animate-hologram" />
+                  <div className="relative h-56 flex items-end justify-center">
                     <div
-                      className="w-32 bg-gradient-to-t from-primary/40 to-transparent rounded-t-full transition-all duration-300"
+                      className="w-40 bg-gradient-to-t from-primary/60 via-primary/40 to-transparent rounded-t-full transition-all duration-700 ease-out relative overflow-hidden"
                       style={{ height: `${currentProgress}%` }}
                     >
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-8 bg-accent blur-sm animate-float" />
+                      {/* Bubbles effect */}
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute bottom-0 w-2 h-2 bg-accent/60 rounded-full animate-particle-float"
+                          style={{
+                            left: `${20 + i * 15}%`,
+                            animationDelay: `${i * 0.3}s`,
+                          }}
+                        />
+                      ))}
+                      
+                      {/* Glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-accent/20 to-transparent animate-pulse-slow" />
+                      
+                      {/* Shimmer */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+                      
+                      {/* Reaction indicator */}
+                      <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-accent blur-md animate-bounce-subtle" />
                     </div>
+                    
+                    {/* Vapor effect */}
+                    {currentProgress > 50 && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        {[...Array(3)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="absolute w-8 h-8 bg-accent/20 rounded-full blur-xl animate-float opacity-40"
+                            style={{
+                              animationDelay: `${i * 0.4}s`,
+                              left: `${-10 + i * 10}px`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-center text-sm text-muted-foreground mt-4">Reaction Beaker</p>
+                  <p className="text-center text-sm text-muted-foreground mt-4 relative z-10">Reaction Beaker</p>
                 </div>
               </CardContent>
             </Card>
