@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Beaker, LogOut, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
+import { ParticleBackground } from "@/components/ParticleBackground";
 
 interface SimulationHistory {
   id: string;
@@ -109,8 +110,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b border-border/50 backdrop-blur-sm bg-card/30">
+    <div className="min-h-screen bg-background relative">
+      <ParticleBackground />
+      <nav className="border-b border-border/50 backdrop-blur-md bg-card/40 relative z-10 shadow-lg shadow-primary/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
@@ -133,10 +135,10 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Your Simulations</h2>
-          <p className="text-muted-foreground">View and manage your chemical reaction history</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <div className="mb-8 animate-slide-down">
+          <h2 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Your Simulations</h2>
+          <p className="text-muted-foreground animate-fade-in-scale" style={{ animationDelay: "0.1s" }}>View and manage your chemical reaction history</p>
         </div>
 
         {history.length === 0 ? (
@@ -151,9 +153,13 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {history.map((sim) => (
-              <Card key={sim.id} className="backdrop-blur-sm bg-card/50 border-border/50 hover:border-primary/50 transition-all">
+          <div className="grid gap-6 md:grid-cols-2 perspective-1000">
+            {history.map((sim, index) => (
+              <Card 
+                key={sim.id} 
+                className="backdrop-blur-md bg-card/60 border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:-translate-y-2 preserve-3d group shadow-xl hover:shadow-primary/20 animate-fade-in-scale"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
