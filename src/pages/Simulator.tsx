@@ -11,6 +11,8 @@ import { Beaker, Home, LogOut, Play, Save, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
 import { ParticleBackground } from "@/components/ParticleBackground";
+// IMPORT THE NEW COMPONENT
+import { ReactionBeaker } from "@/components/ReactionBeaker";
 
 interface Reaction {
   id: string;
@@ -405,103 +407,53 @@ const Simulator = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium">{reactantA || "Reactant A"}</span>
+                      <span className="font-medium text-blue-400">{reactantA || "Reactant A"}</span>
                       <span className="text-muted-foreground">{reactantARemaining}%</span>
                     </div>
-                    <div className="h-8 bg-secondary rounded-lg overflow-hidden relative">
+                    <div className="h-4 bg-secondary rounded-full overflow-hidden relative">
                       <div
-                        className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out relative"
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-out relative"
                         style={{ width: `${reactantARemaining}%` }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-                      </div>
+                      ></div>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium">{reactantB || "Reactant B"}</span>
+                      <span className="font-medium text-red-400">{reactantB || "Reactant B"}</span>
                       <span className="text-muted-foreground">{reactantBRemaining}%</span>
                     </div>
-                    <div className="h-8 bg-secondary rounded-lg overflow-hidden relative">
+                    <div className="h-4 bg-secondary rounded-full overflow-hidden relative">
                       <div
-                        className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out relative"
+                        className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-500 ease-out relative"
                         style={{ width: `${reactantBRemaining}%` }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-                      </div>
+                      ></div>
                     </div>
-                  </div>
-
-                  <div className="my-4 text-center text-4xl text-accent animate-bounce-subtle flex items-center justify-center gap-2">
-                    <Zap className="w-6 h-6 animate-pulse" />
-                    →
-                    <Zap className="w-6 h-6 animate-pulse" style={{ animationDelay: "0.2s" }} />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium">Products</span>
+                      <span className="font-medium text-purple-400">Products</span>
                       <span className="text-accent">{productAFormed}%</span>
                     </div>
-                    <div className="h-8 bg-secondary rounded-lg overflow-hidden relative">
+                    <div className="h-4 bg-secondary rounded-full overflow-hidden relative">
                       <div
-                        className="h-full bg-gradient-to-r from-accent to-accent/80 transition-all duration-500 ease-out relative"
+                        className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500 ease-out relative"
                         style={{ width: `${productAFormed}%` }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style={{ animationDelay: "0.5s" }} />
-                      </div>
+                      ></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 p-6 rounded-lg border-2 border-primary/30 bg-gradient-to-b from-transparent to-primary/10 relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 animate-hologram" />
-                  <div className="relative h-56 flex items-end justify-center">
-                    <div
-                      className="w-40 bg-gradient-to-t from-primary/60 via-primary/40 to-transparent rounded-t-full transition-all duration-700 ease-out relative overflow-hidden"
-                      style={{ height: `${currentProgress}%` }}
-                    >
-                      {/* Bubbles effect */}
-                      {[...Array(5)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="absolute bottom-0 w-2 h-2 bg-accent/60 rounded-full animate-particle-float"
-                          style={{
-                            left: `${20 + i * 15}%`,
-                            animationDelay: `${i * 0.3}s`,
-                          }}
-                        />
-                      ))}
-                      
-                      {/* Glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-accent/20 to-transparent animate-pulse-slow" />
-                      
-                      {/* Shimmer */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
-                      
-                      {/* Reaction indicator */}
-                      <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-accent blur-md animate-bounce-subtle" />
-                    </div>
-                    
-                    {/* Vapor effect */}
-                    {currentProgress > 50 && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                        {[...Array(3)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="absolute w-8 h-8 bg-accent/20 rounded-full blur-xl animate-float opacity-40"
-                            style={{
-                              animationDelay: `${i * 0.4}s`,
-                              left: `${-10 + i * 10}px`,
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-center text-sm text-muted-foreground mt-4 relative z-10">Reaction Beaker</p>
+                {/* --- THIS IS WHERE WE ADDED THE NEW COMPONENT --- */}
+                <div className="mt-8">
+                    <ReactionBeaker 
+                        reactantAName={reactantA || "Reactant A"} 
+                        reactantBName={reactantB || "Reactant B"} 
+                    />
                 </div>
+                {/* ----------------------------------------------- */}
+
               </CardContent>
             </Card>
           </div>
