@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 // --- CONFIGURATION ---
 const ATOM_COUNT = 60;
 const ATOM_RADIUS = 5;
-const SPEED = 2;
-const REACTION_DIST = ATOM_RADIUS * 2.2; // Distance to trigger reaction
+const SPEED = 1.5;
+const REACTION_DIST = ATOM_RADIUS * 2.5;
 
 type AtomType = 'A' | 'B' | 'PRODUCT';
 
@@ -19,13 +19,17 @@ interface Atom {
   id: number;
 }
 
-export const ReactionBeaker = () => {
+interface ReactionBeakerProps {
+  reactantAName?: string;
+  reactantBName?: string;
+}
+
+export const ReactionBeaker = ({ reactantAName = "Reactant A", reactantBName = "Reactant B" }: ReactionBeakerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [stats, setStats] = useState({ a: 0, b: 0, product: 0 });
   
-  // Refs for animation loop to avoid re-renders
   const atomsRef = useRef<Atom[]>([]);
   const requestRef = useRef<number>();
 
@@ -69,7 +73,7 @@ export const ReactionBeaker = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // 1. Clear Canvas
+    // 1. Clear Canvas (Video effect)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // 2. Physics & Drawing
@@ -90,7 +94,7 @@ export const ReactionBeaker = () => {
       ctx.beginPath();
       ctx.arc(atom.x, atom.y, ATOM_RADIUS, 0, Math.PI * 2);
       ctx.fillStyle = getColor(atom.type);
-      ctx.shadowBlur = 5;
+      ctx.shadowBlur = 8;
       ctx.shadowColor = getColor(atom.type);
       ctx.fill();
       ctx.shadowBlur = 0;
@@ -106,27 +110,44 @@ export const ReactionBeaker = () => {
         if (dist < REACTION_DIST) {
           // Physics Bounce
           const angle = Math.atan2(dy, dx);
-          const speed1 = Math.sqrt(atom.vx * atom.vx + atom.vy * atom.vy);
-          const speed2 = Math.sqrt(other.vx * other.vx + other.vy * other.vy);
-          atom.vx = -Math.cos(angle) * speed1;
-          atom.vy = -Math.sin(angle) * speed1;
-          other.vx = Math.cos(angle) * speed2;
-          other.vy = Math.sin(angle) * speed2;
+          const sin = Math.sin(angle);
+          const cos = Math.cos(angle);
 
-          // REACTION: If A hits B, they both become Product
+          // Rotate velocity
+          const vx1 = atom.vx * cos + atom.vy * sin;
+          const vy1 = atom.vy * cos - atom.vx * sin;
+          const vx2 = other.vx * cos + other.vy * sin;
+          const vy2 = other.vy * cos - other.vx * sin;
+
+          // Swap
+          const vx1Final = vx2;
+          const vx2Final = vx1;
+
+          // Rotate back
+          atom.vx = vx1Final * cos - vy1 * sin;
+          atom.vy = vy1 * cos + vx1Final * sin;
+          other.vx = vx2Final * cos - vy2 * sin;
+          other.vy = vy2 * cos + vx2Final * sin;
+
+          // Separate to prevent sticking
+          const overlap = REACTION_DIST - dist;
+          atom.x += (overlap / 2) * Math.cos(angle);
+          atom.y += (overlap / 2) * Math.sin(angle);
+          other.x -= (overlap / 2) * Math.cos(angle);
+          other.y -= (overlap / 2) * Math.sin(angle);
+
+          // CHEMICAL REACTION: A + B -> PRODUCT
           if ((atom.type === 'A' && other.type === 'B') || 
               (atom.type === 'B' && atom.type === 'A')) {
             atom.type = 'PRODUCT';
             other.type = 'PRODUCT';
-            // Slight visual pop
-            atom.vx *= 1.5; 
-            other.vx *= 1.5;
           }
         }
       }
     });
 
-    if (Math.random() > 0.9) updateStats(); // Update stats occasionally to save performance
+    // Update stats occasionally to save performance
+    if (Math.random() > 0.95) updateStats();
 
     if (isPlaying) {
       requestRef.current = requestAnimationFrame(animate);
@@ -137,86 +158,81 @@ export const ReactionBeaker = () => {
     switch (type) {
       case 'A': return '#3b82f6'; // Blue
       case 'B': return '#ef4444'; // Red
-      case 'PRODUCT': return '#a855f7'; // Purple (Result)
+      case 'PRODUCT': return '#a855f7'; // Purple
       default: return '#fff';
     }
   };
 
   // --- EFFECTS ---
-  
-  // Handle Resize
-  useEffect(() => {
-    const handleResize = () => {
-      initSimulation();
-      // Restore atoms if resizing just to keep them on screen (optional logic omitted for brevity)
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Initial Load
   useEffect(() => {
     initSimulation();
-    return () => cancelAnimationFrame(requestRef.current!);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Play/Pause Toggle
   useEffect(() => {
     if (isPlaying) {
       requestRef.current = requestAnimationFrame(animate);
     } else {
-      cancelAnimationFrame(requestRef.current!);
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
     }
-    return () => cancelAnimationFrame(requestRef.current!);
+    return () => {
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
   }, [isPlaying]);
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-      
+    <div className="flex flex-col gap-4 w-full">
       {/* GLASS BEAKER CONTAINER */}
-      <div className="relative group">
-        <div 
-            ref={containerRef}
-            className="h-[400px] w-full bg-slate-900/40 backdrop-blur-md rounded-b-[3rem] border-x-2 border-b-4 border-white/20 shadow-[0_0_30px_rgba(59,130,246,0.1)] overflow-hidden relative"
-        >
-            {/* Liquid Surface */}
-            <div className="absolute top-0 w-full h-[1px] bg-white/30 shadow-[0_0_10px_white]"></div>
-            
-            {/* The Canvas Layer */}
-            <canvas ref={canvasRef} className="block w-full h-full" />
-            
-            {/* Glass Reflection Overlay */}
-            <div className="absolute top-0 left-4 w-12 h-full bg-gradient-to-r from-white/5 to-transparent skew-x-6 pointer-events-none"></div>
+      <div className="relative w-full h-[320px] bg-slate-950/80 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-2xl group">
+        
+        {/* Canvas Layer */}
+        <div ref={containerRef} className="absolute inset-0 w-full h-full">
+             <canvas ref={canvasRef} className="block w-full h-full" />
+        </div>
+
+        {/* Start Overlay */}
+        {!isPlaying && stats.product === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px] z-10 transition-all">
+                <Button onClick={() => setIsPlaying(true)} className="gap-2 shadow-xl hover:scale-105 transition-transform">
+                    <Play className="w-4 h-4" /> Start Reaction
+                </Button>
+            </div>
+        )}
+
+        {/* Live HUD */}
+        <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md px-3 py-2 rounded-lg border border-white/10 text-xs font-mono space-y-1 z-20 shadow-lg">
+            <div className="flex items-center gap-2 text-blue-400">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div> 
+                {reactantAName || "Reactant A"}: {stats.a}
+            </div>
+            <div className="flex items-center gap-2 text-red-400">
+                <div className="w-2 h-2 rounded-full bg-red-500"></div> 
+                {reactantBName || "Reactant B"}: {stats.b}
+            </div>
+            <div className="flex items-center gap-2 text-purple-400 font-bold border-t border-white/10 pt-1 mt-1">
+                <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_#a855f7]"></div> 
+                Product: {stats.product}
+            </div>
         </div>
       </div>
 
       {/* CONTROLS */}
-      <div className="flex items-center justify-between bg-card/50 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
-        <div className="flex gap-2">
-          <Button 
-            variant={isPlaying ? "secondary" : "default"}
-            size="icon"
+      <div className="flex gap-2 justify-center">
+        <Button 
+            variant={isPlaying ? "destructive" : "default"}
+            size="sm"
             onClick={() => setIsPlaying(!isPlaying)}
-            className="rounded-full"
-          >
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          </Button>
-          <Button 
+            className="w-32"
+        >
+            {isPlaying ? <><Pause className="w-4 h-4 mr-2"/> Pause</> : <><Play className="w-4 h-4 mr-2"/> Resume</>}
+        </Button>
+        <Button 
             variant="outline" 
-            size="icon"
-            onClick={() => { initSimulation(); setIsPlaying(true); }}
-            className="rounded-full hover:bg-white/10"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Live Legend */}
-        <div className="flex gap-3 text-xs font-mono">
-            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div> A: {stats.a}</div>
-            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> B: {stats.b}</div>
-            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div> AB: {stats.product}</div>
-        </div>
+            size="sm"
+            onClick={() => { initSimulation(); setIsPlaying(false); }}
+        >
+            <RotateCcw className="w-4 h-4 mr-2" /> Reset
+        </Button>
       </div>
     </div>
   );
